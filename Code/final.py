@@ -4,6 +4,8 @@ import busio
 from adafruit_servokit import ServoKit
 import multiprocessing
 
+import streamlit as st
+
 import RPi.GPIO as GPIO
 import os
 
@@ -179,9 +181,9 @@ def bootup():
         p2.join()
         p3.join()
     
-def sound(emotion):
-    for i in range(1):
-	    os.system("aplay /home/pi/Desktop/EmoBot/sound/"+emotion+".wav")
+# def sound(emotion):
+#     for i in range(1):
+# 	    os.system("aplay /home/kor/Code/sound/"+emotion+".wav")
     
 def show(emotion,count):
     for i in range(count):
@@ -189,7 +191,7 @@ def show(emotion,count):
             disp = LCD_2inch.LCD_2inch()
             disp.Init()
             for i in range(frame_count[emotion]):
-                image = Image.open('/home/pi/Desktop/EmoBot/emotions/'+emotion+'/frame'+str(i)+'.png')	
+                image = Image.open('/home/kor/Code/emotions/'+emotion+'/frame'+str(i)+'.png')	
                 disp.ShowImage(image)
         except IOError as e:
             logging.info(e)    
@@ -199,37 +201,45 @@ def show(emotion,count):
             logging.info("quit:")
             exit()
 
+## def website():
+##    st.title('hello')
+
 if __name__ == '__main__':
     p1 = multiprocessing.Process(target=check_sensor, name='p1')
     p1.start()
     bootup()
+    set_first = False
+    ##p8 = multiprocessing.Process(target = website)
+    ##p8.start()
+    ##p8.join()
     while True:
         if event.is_set():
+            if(set_first):
                 p5.terminate()
-                event.clear()
-                emotion = q.get()
-                q.empty()
-                print(emotion)
-                p2 = multiprocessing.Process(target=show,args=(emotion,4))
-                p3 = multiprocessing.Process(target=sound,args=(emotion,))
-                if emotion == 'happy':
-                    p4 = multiprocessing.Process(target=happy)
-                elif emotion == 'angry':
-                    p4 = multiprocessing.Process(target=angry)
-                elif emotion == 'sad':
-                    p4 = multiprocessing.Process(target=sad)
-                elif emotion == 'excited':
-                    p4 = multiprocessing.Process(target=excited)
-                elif emotion == 'blink':
-                    p4 = multiprocessing.Process(target=blink)
-                else:
-                    continue
-                p2.start()
-                p3.start()
-                p4.start()
-                p2.join()
-                p3.join()
-                p4.join()
+            event.clear()
+            emotion = q.get()
+            q.empty()
+            print(emotion)
+            p2 = multiprocessing.Process(target=show,args=(emotion,4))
+            # p3 = multiprocessing.Process(target=sound,args=(emotion,))
+            if emotion == 'happy':
+                p4 = multiprocessing.Process(target=happy)
+            elif emotion == 'angry':
+                p4 = multiprocessing.Process(target=angry)
+            elif emotion == 'sad':
+                p4 = multiprocessing.Process(target=sad)
+            elif emotion == 'excited':
+                p4 = multiprocessing.Process(target=excited)
+            elif emotion == 'blink':
+                p4 = multiprocessing.Process(target=blink)
+            else:
+                continue
+            p2.start()
+            # p3.start()
+            p4.start()
+            p2.join()
+            # p3.join()
+            p4.join()
         else:
             p = multiprocessing.active_children()
             for i in p:
@@ -242,3 +252,4 @@ if __name__ == '__main__':
             p6.start()
             p6.join()
             p5.join()
+            set_first = True
