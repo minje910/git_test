@@ -4,7 +4,8 @@ import busio
 from adafruit_servokit import ServoKit
 import multiprocessing
 
-from flask import Flask
+from flask import Flask, render_template
+from flask_socketio import SocketIO
 import threading
 
 import RPi.GPIO as GPIO
@@ -24,15 +25,27 @@ from random import randint
 touch_pin = 17
 vibration_pin = 22
 
+#website status message
+vib=0
+touch_in = 0
+
+
 #set the website
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'
+    return render_template("index.html")
+
+def background_task():
+    while True:
+        socketio.emit("update", time.strftime("%H:%M:%S"))
+        socketio.sleep(1)
 
 def website():
-    app.run(host='0.0.0.0', port=3500)
+    socketio.start_background_task(background_task)
+    socketio.run(app, host='0.0.0.0', port=3500)
 
 
 # Set up pins
@@ -65,10 +78,12 @@ q = multiprocessing.Queue()
 event = multiprocessing.Event()
 
 def check_sensor():
+    global vib, touch_in
     previous_state = 1
     current_state = 0
     while True:
         if (GPIO.input(touch_pin) == GPIO.HIGH):
+            touch_in = 1
             if previous_state != current_state:
                 if (q.qsize()==0):
                     event.set()
@@ -76,11 +91,14 @@ def check_sensor():
                 current_state = 1
             else:
                 current_state = 0
+            touch_in = 0
         if GPIO.input(vibration_pin) == 1:
+            vib = 1
             print('vib')
             if (q.qsize()==0):
                 event.set()
                 q.put(emotion[randint(0,2)])
+            vib = 0
         time.sleep(0.05)
 
 def servoMed():
