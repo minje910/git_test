@@ -4,7 +4,8 @@ import busio
 from adafruit_servokit import ServoKit
 import multiprocessing
 
-import streamlit as st
+from flask import Flask
+import threading
 
 import RPi.GPIO as GPIO
 import os
@@ -23,6 +24,15 @@ from random import randint
 touch_pin = 17
 vibration_pin = 22
 
+#set the website
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+def website():
+    app.run(host='0.0.0.0', port=3500)
 
 
 # Set up pins
@@ -201,17 +211,14 @@ def show(emotion,count):
             logging.info("quit:")
             exit()
 
-## def website():
-##    st.title('hello')
-
+      
 if __name__ == '__main__':
+    flask_thread = threading.Thread(target=website, daemon = True)
+    flask_thread.start()
     p1 = multiprocessing.Process(target=check_sensor, name='p1')
     p1.start()
     bootup()
     set_first = False
-    ##p8 = multiprocessing.Process(target = website)
-    ##p8.start()
-    ##p8.join()
     while True:
         if event.is_set():
             if(set_first):
