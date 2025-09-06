@@ -54,11 +54,11 @@ GPIO.setup(touch_pin, GPIO.IN)
 GPIO.setup(vibration_pin, GPIO.IN)
 
 # Raspberry Pi pin configuration for LCD:
-RST = 27
-DC = 25
-BL = 18
-bus = 0 
-device = 0 
+# RST = 27
+# DC = 25
+# BL = 18
+# bus = 0 
+# device = 0 
 
 kit=ServoKit(channels=16)
 servo=3
